@@ -1,0 +1,69 @@
+version: "2"
+
+services:
+  nginx:
+      container_name: ${APP_NAME}_nginx
+      restart: always
+      image: nginx:latest
+      ports:
+          - "8081:80"
+          # - "443:443"
+      volumes:
+        # app
+        - ./app/public:/usr/share/nginx/html
+        # nginx configs
+        - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        - ./nginx/conf.d/:/etc/nginx/conf.d/
+        # certificates
+        # - ./nginx/ca/server.crt/:/etc/nginx/server.crt
+        # - ./nginx/ca/server.key/:/etc/nginx/server.key
+      links:
+          - fpm:php
+      networks:
+          - app_network
+
+  fpm:
+      container_name: ${APP_NAME}_fpm
+      restart: always
+      build:
+          context: ./php-fpm
+      volumes:
+          - ./app/public:/usr/share/nginx/html
+          # php.ini
+          - ./php-fpm/php.ini:/usr/local/etc/php/php.ini
+      expose:
+          - "9000"
+      links:
+          - db
+      environment:
+          - APP_KEY=${APP_KEY}
+          - DB_HOST=${MYSQL_HOST}
+          - DB_DATABASE=${MYSQL_DATABASE}
+          - DB_USERNAME=${MYSQL_USER}
+          - DB_PASSWORD=${MYSQL_PASSWORD}
+      networks:
+          - app_network
+
+  db:
+      container_name: ${APP_NAME}_mariadb
+      restart: always
+      image: mariadb:latest
+      ports:
+          - "3307:3306"
+      expose:
+          - "3306"
+      environment:
+          - MYSQL_ROOT_USER=${MYSQL_ROOT_USER}
+          - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+          - MYSQL_DATABASE=${MYSQL_DATABASE}
+          - MYSQL_USER=${MYSQL_USER}
+          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          # - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      volumes:
+          - ./db:/var/lib/mysql
+      networks:
+          - app_network
+
+networks:
+    app_network:
+        driver: bridge

@@ -1,0 +1,19 @@
+# JetBrains IDEs
+.idea/
+.idea_modules/
+cmake-build-debug/
+
+# IntelliJ
+out/
+
+# File-based project format
+*.iws
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
